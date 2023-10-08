@@ -52,7 +52,9 @@ function toBuild() {
         out_file=${build_path}/${run_mode}/${product_name}.exe
     fi
 
-    go build -o ${out_file_name} -trimpath -ldflags "${ld_flag_master}" main.go
+    echo "buid file with " ${out_file}
+
+    go build -o ${out_file} -trimpath -ldflags "${ld_flag_master}" main.go
 
     package_files
 
