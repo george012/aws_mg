@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/george012/gtbox/gtbox_log"
 	"github.com/s-c-f-d/aws_mg/aws_mg_common"
 	"github.com/s-c-f-d/aws_mg/aws_mg_ec2"
 	"github.com/s-c-f-d/aws_mg/aws_mg_model"
@@ -47,19 +46,19 @@ func (aws_mg *AWSManager) deleteInstance() {
 
 }
 
-func (aws_mg *AWSManager) createInstanceWithAMIId(ami_id string) error {
-	return aws_mg_ec2.CreateInstanceFromAWSManager(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, ami_id)
+func (aws_mg *AWSManager) createInstanceWithAMIId(ami_id string, end_func func(result_info interface{}, err error)) {
+	aws_mg_ec2.CreateInstanceFromAWSManager(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, ami_id, end_func)
 }
 
 // NewEC2WithRegion 创建EC2
-func NewEC2WithRegion(region aws_mg_common.AWSRegion, ami_id string) error {
+func NewEC2WithRegion(region aws_mg_common.AWSRegion, ami_id string, end_func func(result_info interface{}, err error)) {
 	currentRegion = region
 
-	return instanceOnce().createInstanceWithAMIId(ami_id)
+	instanceOnce().createInstanceWithAMIId(ami_id, end_func)
 }
 
 // SetupAWSManager 初始化工具，仅运行一次。
-func SetupAWSManager(ak string, sk string) error {
+func SetupAWSManager(ak string, sk string, end_func func(err error)) {
 
 	instanceOnce().Region = currentRegion
 
@@ -71,11 +70,10 @@ func SetupAWSManager(ak string, sk string) error {
 		config.WithRegion(currentManager.Region.String()),
 	)
 	if err != nil {
-		err_info := fmt.Sprintf("无法配置AWS SDK: %s", err.Error())
-		gtbox_log.LogErrorf("%s", err_info)
-		return errors.New(err_info)
+		end_func(errors.New(fmt.Sprintf("无法配置AWS SDK: %s", err.Error())))
+		return
 	}
 
 	currentManager.AWSConfig = &cfg
-	return nil
+	end_func(nil)
 }

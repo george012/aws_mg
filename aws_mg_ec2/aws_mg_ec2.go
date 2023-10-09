@@ -61,7 +61,7 @@ func waitForInstancesRunning(ctx context.Context, svc *ec2.Client, instanceIds [
 	}
 }
 
-func CreateInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, ami_id string) error {
+func CreateInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, ami_id string, end_func func(result_info interface{}, err error)) {
 
 	// 创建EC2服务客户端
 	ec2_client = ec2.NewFromConfig(*aws_config)
@@ -69,9 +69,8 @@ func CreateInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aw
 	pre_ec2_conf := newZilliqaNodePreConfigWithRegion(region, ami_id)
 
 	if pre_ec2_conf == nil {
-		err_info := "尚未支持区域"
-		gtbox_log.LogErrorf("%s", err_info)
-		return errors.New(err_info)
+		end_func(nil, errors.New("尚未支持区域"))
+		return
 	}
 
 	// 创建EC2实例
@@ -105,9 +104,8 @@ func CreateInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aw
 
 	runOutput, err := ec2_client.RunInstances(context.TODO(), runInput)
 	if err != nil {
-		err_info := fmt.Sprintf("无法创建EC2实例: %s", err.Error())
-		gtbox_log.LogErrorf("%s", err_info)
-		return errors.New(err_info)
+		end_func(nil, errors.New(fmt.Sprintf("无法创建EC2实例: %s", err.Error())))
+		return
 	}
 
 	// 打印实例ID
@@ -123,9 +121,8 @@ func CreateInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aw
 		instanceIds = append(instanceIds, *instance.InstanceId)
 	}
 	if err := waitForInstancesRunning(context.TODO(), ec2_client, instanceIds); err != nil {
-		err_info := fmt.Sprintf("等待EC2实例状态变为'running'时出错: %s", err.Error())
-		gtbox_log.LogErrorf("%s", err_info)
-		return errors.New(err_info)
+		end_func(nil, errors.New(fmt.Sprintf("等待EC2实例状态变为'running'时出错: %s", err.Error())))
+		return
 	}
 
 	// 为每个实例申请并绑定Elastic IP
@@ -133,9 +130,8 @@ func CreateInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aw
 		// 申请Elastic IP
 		allocateOutput, err := ec2_client.AllocateAddress(context.TODO(), &ec2.AllocateAddressInput{})
 		if err != nil {
-			err_info := fmt.Sprintf("无法分配Elastic IP: %s", err.Error())
-			gtbox_log.LogErrorf("%s", err_info)
-			return errors.New(err_info)
+			end_func(nil, errors.New(fmt.Sprintf("无法分配Elastic IP: %s", err.Error())))
+			return
 		}
 
 		// 绑定Elastic IP到实例
@@ -145,14 +141,11 @@ func CreateInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aw
 		})
 
 		if err != nil {
-			err_info := fmt.Sprintf("无法绑定Elastic IP到实例: %s", err.Error())
-			gtbox_log.LogErrorf("%s", err_info)
-			return errors.New(err_info)
+			end_func(nil, errors.New(fmt.Sprintf("无法绑定Elastic IP到实例: %s", err.Error())))
+			return
 		}
-
-		gtbox_log.LogErrorf("为实例 %s 绑定了Elastic IP %s\n", *instance.InstanceId, *allocateOutput.PublicIp)
 	}
-	return nil
+	end_func(runOutput.Instances, nil)
 }
 
 func ListInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client) map[string]*types.Instance {
