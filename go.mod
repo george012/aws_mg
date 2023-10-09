@@ -1,4 +1,4 @@
-module github.com/s-c-f-d/aws_mg
+module github.com/george012/aws_mg
 
 go 1.18
 

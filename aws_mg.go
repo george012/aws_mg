@@ -8,9 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/s-c-f-d/aws_mg/aws_mg_common"
-	"github.com/s-c-f-d/aws_mg/aws_mg_ec2"
-	"github.com/s-c-f-d/aws_mg/aws_mg_model"
+	"github.com/george012/aws_mg/aws_mg_common"
+	"github.com/george012/aws_mg/aws_mg_ec2"
+	"github.com/george012/aws_mg/aws_mg_model"
 	"sync"
 )
 

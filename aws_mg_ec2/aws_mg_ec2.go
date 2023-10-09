@@ -7,9 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/george012/aws_mg/aws_mg_common"
+	"github.com/george012/aws_mg/aws_mg_model"
 	"github.com/george012/gtbox/gtbox_log"
-	"github.com/s-c-f-d/aws_mg/aws_mg_common"
-	"github.com/s-c-f-d/aws_mg/aws_mg_model"
 	"time"
 )
 

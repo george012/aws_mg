@@ -1,8 +1,8 @@
 package aws_mg
 
 import (
+	"github.com/george012/aws_mg/aws_mg_common"
 	"github.com/george012/gtbox/gtbox_log"
-	"github.com/s-c-f-d/aws_mg/aws_mg_common"
 	"testing"
 )
 
