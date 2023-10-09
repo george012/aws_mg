@@ -2,6 +2,8 @@ package aws_mg
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -45,19 +47,19 @@ func (aws_mg *AWSManager) deleteInstance() {
 
 }
 
-func (aws_mg *AWSManager) createInstanceWithAMIId(ami_id string) {
-	aws_mg_ec2.CreateInstanceFromAWSManager(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, ami_id)
+func (aws_mg *AWSManager) createInstanceWithAMIId(ami_id string) error {
+	return aws_mg_ec2.CreateInstanceFromAWSManager(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, ami_id)
 }
 
 // NewEC2WithRegion 创建EC2
-func NewEC2WithRegion(region aws_mg_common.AWSRegion, ami_id string) {
+func NewEC2WithRegion(region aws_mg_common.AWSRegion, ami_id string) error {
 	currentRegion = region
 
-	instanceOnce().createInstanceWithAMIId(ami_id)
+	return instanceOnce().createInstanceWithAMIId(ami_id)
 }
 
 // SetupAWSManager 初始化工具，仅运行一次。
-func SetupAWSManager(ak string, sk string) {
+func SetupAWSManager(ak string, sk string) error {
 
 	instanceOnce().Region = currentRegion
 
@@ -69,9 +71,11 @@ func SetupAWSManager(ak string, sk string) {
 		config.WithRegion(currentManager.Region.String()),
 	)
 	if err != nil {
-		gtbox_log.LogErrorf("无法配置AWS SDK: %s", err)
-		return
+		err_info := fmt.Sprintf("无法配置AWS SDK: %s", err.Error())
+		gtbox_log.LogErrorf("%s", err_info)
+		return errors.New(err_info)
 	}
 
 	currentManager.AWSConfig = &cfg
+	return nil
 }
