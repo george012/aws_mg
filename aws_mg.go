@@ -15,17 +15,16 @@ import (
 )
 
 type AWSManager struct {
-	Region            aws_mg_common.AWSRegion
-	AwsAk             string
-	AwsSk             string
-	AWSConfig         *aws.Config
-	InstancePreConfig *aws_mg_model.AWSInstancePreConfig
-	EC2Client         *ec2.Client
+	region               aws_mg_common.AWSRegion
+	awsAk                string
+	awsSk                string
+	aWSConfig            *aws.Config
+	ec2instancePreConfig *aws_mg_model.AWSInstancePreConfig
+	ec2Client            *ec2.Client
 }
 
 var (
 	aws_mg_once    sync.Once
-	currentRegion  aws_mg_common.AWSRegion
 	currentManager *AWSManager
 )
 
@@ -38,54 +37,45 @@ func instanceOnce() *AWSManager {
 }
 
 func (aws_mg *AWSManager) ListInstance() {
-	aws_mg_ec2.ListInstanceFromAWSManager(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client)
-
+	aws_mg_ec2.ListInstanceFromAWSManager(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client)
 }
 
 func (aws_mg *AWSManager) DeleteInstance(instanceIds []string) {
-	aws_mg_ec2.DeleteInstance(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, instanceIds)
+	aws_mg_ec2.DeleteInstance(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, instanceIds)
 }
 
 func (aws_mg *AWSManager) StopInstance(instanceIds []string) {
-	aws_mg_ec2.StopInstance(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, instanceIds)
+	aws_mg_ec2.StopInstance(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, instanceIds)
 }
 
 func (aws_mg *AWSManager) RebootInstance(instanceIds []string) {
-	aws_mg_ec2.RebootInstance(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, instanceIds)
+	aws_mg_ec2.RebootInstance(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, instanceIds)
 }
 
 func (aws_mg *AWSManager) StartInstance(instanceIds []string) {
-	aws_mg_ec2.StartInstance(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, instanceIds)
+	aws_mg_ec2.StartInstance(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, instanceIds)
 }
 
-func (aws_mg *AWSManager) createInstanceWithAMIId(ami_id string, end_func func(result_info interface{}, err error)) {
-	aws_mg_ec2.CreateInstanceFromAWSManager(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, ami_id, end_func)
+func (aws_mg *AWSManager) CreateEC2Instance(instance_pre_config *aws_mg_model.AWSInstancePreConfig, end_func func(result_info interface{}, err error)) {
+	aws_mg_ec2.CreateInstanceFromAWSManager(instance_pre_config, aws_mg.aWSConfig, aws_mg.ec2Client, end_func)
 }
 
-// NewEC2WithRegion 创建EC2
-func NewEC2WithRegion(region aws_mg_common.AWSRegion, ami_id string, end_func func(result_info interface{}, err error)) {
-	currentRegion = region
+// NewAWSManager 初始化工具，仅运行一次。
+func NewAWSManager(ak string, sk string, default_region aws_mg_common.AWSRegion) (*AWSManager, error) {
 
-	instanceOnce().createInstanceWithAMIId(ami_id, end_func)
-}
-
-// SetupAWSManager 初始化工具，仅运行一次。
-func SetupAWSManager(ak string, sk string, end_func func(err error)) {
-
-	instanceOnce().Region = currentRegion
-
-	instanceOnce().AwsAk = ak
-	instanceOnce().AwsSk = sk
+	instanceOnce().awsAk = ak
+	instanceOnce().awsSk = sk
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(currentManager.AwsAk, currentManager.AwsSk, "")),
-		config.WithRegion(currentManager.Region.String()),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(currentManager.awsAk, currentManager.awsSk, "")),
+		config.WithRegion(default_region.String()),
 	)
 	if err != nil {
-		end_func(errors.New(fmt.Sprintf("无法配置AWS SDK: %s", err.Error())))
-		return
+		return nil, errors.New(fmt.Sprintf("无法配置AWS SDK: %s", err.Error()))
 	}
 
-	currentManager.AWSConfig = &cfg
-	end_func(nil)
+	instanceOnce().aWSConfig = &cfg
+	instanceOnce().region = default_region
+
+	return instanceOnce(), nil
 }

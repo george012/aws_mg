@@ -13,24 +13,6 @@ import (
 	"time"
 )
 
-func newZilliqaNodePreConfigWithRegion(region aws_mg_common.AWSRegion, ami_id string) *aws_mg_model.AWSInstancePreConfig {
-	var instancePreConfig *aws_mg_model.AWSInstancePreConfig
-	switch region {
-	case aws_mg_common.AWSRegion_US_West_1_California_North:
-		instancePreConfig = &aws_mg_model.AWSInstancePreConfig{
-			VolumeSize:   150,
-			InstanceType: "t3.large",
-			SafeGroupIDs: []string{"sg-06f7adbdd3b34cbe5", "sg-028416288952dd959"},
-			SubnetID:     "subnet-0120c0651adf6d587",
-			NameTag:      "new_test",
-			AMIId:        ami_id,
-		}
-	default:
-		instancePreConfig = nil
-	}
-	return instancePreConfig
-}
-
 // 等待EC2实例状态变为"running"
 func waitForInstancesRunning(ctx context.Context, svc *ec2.Client, instanceIds []string) error {
 	for {
@@ -61,41 +43,34 @@ func waitForInstancesRunning(ctx context.Context, svc *ec2.Client, instanceIds [
 	}
 }
 
-func CreateInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, ami_id string, end_func func(result_info interface{}, err error)) {
+func CreateInstanceFromAWSManager(instance_pre_config *aws_mg_model.AWSInstancePreConfig, aws_config *aws.Config, ec2_client *ec2.Client, end_func func(result_info interface{}, err error)) {
 
 	// 创建EC2服务客户端
 	ec2_client = ec2.NewFromConfig(*aws_config)
-
-	pre_ec2_conf := newZilliqaNodePreConfigWithRegion(region, ami_id)
-
-	if pre_ec2_conf == nil {
-		end_func(nil, errors.New("尚未支持区域"))
-		return
-	}
 
 	// 创建EC2实例
 	runInput := &ec2.RunInstancesInput{
 		MaxCount:     aws.Int32(1),
 		MinCount:     aws.Int32(1),
-		InstanceType: types.InstanceType(pre_ec2_conf.InstanceType),
+		InstanceType: instance_pre_config.InstanceType,
 		BlockDeviceMappings: []types.BlockDeviceMapping{
 			{
 				DeviceName: aws.String("/dev/sda1"),
 				Ebs: &types.EbsBlockDevice{
-					VolumeSize: aws.Int32(pre_ec2_conf.VolumeSize),
+					VolumeSize: aws.Int32(instance_pre_config.VolumeSize),
 				},
 			},
 		},
-		SubnetId:         aws.String(pre_ec2_conf.SubnetID),
-		SecurityGroupIds: pre_ec2_conf.SafeGroupIDs,
-		ImageId:          aws.String(pre_ec2_conf.AMIId),
+		SubnetId:         aws.String(instance_pre_config.SubnetID),
+		SecurityGroupIds: instance_pre_config.SafeGroupIDs,
+		ImageId:          aws.String(instance_pre_config.AMIId),
 		TagSpecifications: []types.TagSpecification{
 			{
 				ResourceType: types.ResourceTypeInstance,
 				Tags: []types.Tag{
 					{
 						Key:   aws.String("Name"),
-						Value: aws.String(pre_ec2_conf.NameTag),
+						Value: aws.String(instance_pre_config.NameTag),
 					},
 				},
 			},

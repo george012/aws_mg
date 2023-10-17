@@ -35,7 +35,7 @@ function toBuild() {
     go_version=$(go version | awk '{print $3}')
     commit_hash=$(git show -s --format=%H)
     commit_date=$(git show -s --format="%ci")
-    if [[ "$OSTYPE" == "darwin"* ]]; then
+    if [[ "$OS_TYPE" == "darwin"* ]]; then
         # macOS
         formatted_date=$(date -u -jf "%Y-%m-%d %H:%M:%S %z" "${commit_date}" "+%Y-%m-%d_%H:%M:%S")
     else
@@ -75,7 +75,7 @@ function handlerunMode() {
     if [[ "$1" == "release" || "$1" == "" ]]; then
         run_mode=release
     elif [[ "$1" == "test" ]]; then
-        run_mode=test
+        run_mode=aws_mg_test
     else
         echo "Usage: bash build.sh [release|test],default with:release"
         exit 0
