@@ -168,3 +168,51 @@ func ListInstanceFromAWSManager(region aws_mg_common.AWSRegion, aws_config *aws.
 	}
 	return ret_map
 }
+
+func StopInstance(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, nstanceIds []string) error {
+	// 创建EC2服务客户端
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	//停止aws
+	result, err := ec2_client.StopInstances(context.TODO(), &ec2.StopInstancesInput{InstanceIds: nstanceIds})
+	if err != nil {
+		fmt.Println("Error stopping instance:", err)
+		return err
+	}
+	fmt.Println(result)
+	return nil
+}
+
+func DeleteInstance(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, instanceIds []string) error {
+	// 创建EC2服务客户端
+	ec2_client = ec2.NewFromConfig(*aws_config)
+	//停止aws
+	_, err := ec2_client.TerminateInstances(context.TODO(), &ec2.TerminateInstancesInput{InstanceIds: instanceIds})
+	if err != nil {
+		fmt.Println("Error stopping instance:", err)
+		return err
+	}
+	return nil
+}
+
+func RebootInstance(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, instanceIds []string) error {
+	// 创建EC2服务客户端
+	ec2_client = ec2.NewFromConfig(*aws_config)
+	_, err := ec2_client.RebootInstances(context.TODO(), &ec2.RebootInstancesInput{InstanceIds: instanceIds})
+	if err != nil {
+		gtbox_log.LogErrorf("重启失败")
+		return err
+	}
+	return nil
+}
+
+func StartInstance(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, instanceIds []string) error {
+	// 创建EC2服务客户端
+	ec2_client = ec2.NewFromConfig(*aws_config)
+	_, err := ec2_client.StartInstances(context.TODO(), &ec2.StartInstancesInput{InstanceIds: instanceIds})
+	if err != nil {
+		gtbox_log.LogErrorf("启动失败")
+		return err
+	}
+	return nil
+}

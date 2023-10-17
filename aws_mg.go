@@ -37,13 +37,25 @@ func instanceOnce() *AWSManager {
 	return currentManager
 }
 
-func (aws_mg *AWSManager) listInstance() {
+func (aws_mg *AWSManager) ListInstance() {
 	aws_mg_ec2.ListInstanceFromAWSManager(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client)
 
 }
 
-func (aws_mg *AWSManager) deleteInstance() {
+func (aws_mg *AWSManager) DeleteInstance(instanceIds []string) {
+	aws_mg_ec2.DeleteInstance(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, instanceIds)
+}
 
+func (aws_mg *AWSManager) StopInstance(instanceIds []string) {
+	aws_mg_ec2.StopInstance(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, instanceIds)
+}
+
+func (aws_mg *AWSManager) RebootInstance(instanceIds []string) {
+	aws_mg_ec2.RebootInstance(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, instanceIds)
+}
+
+func (aws_mg *AWSManager) StartInstance(instanceIds []string) {
+	aws_mg_ec2.StartInstance(aws_mg.Region, aws_mg.AWSConfig, aws_mg.EC2Client, instanceIds)
 }
 
 func (aws_mg *AWSManager) createInstanceWithAMIId(ami_id string, end_func func(result_info interface{}, err error)) {
