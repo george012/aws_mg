@@ -21,3 +21,43 @@ func TestCreateEC2(t *testing.T) {
 		}
 	})
 }
+
+func TestStopInstanceEC2(t *testing.T) {
+	currentRegion = aws_mg_common.AWSRegion_US_West_2_Oregon
+	SetupAWSManager("test_ak", "test_ak/", func(err error) {
+		if err != nil {
+			gtbox_log.LogErrorf("%s", err)
+		}
+	})
+	instanceOnce().StopInstance([]string{"i-009cc2e0f3098a3da"})
+}
+
+func TestStartInstanceEC2(t *testing.T) {
+	currentRegion = aws_mg_common.AWSRegion_US_West_2_Oregon
+	SetupAWSManager("test_ak", "test_ak/", func(err error) {
+		if err != nil {
+			gtbox_log.LogErrorf("%s", err)
+		}
+	})
+	instanceOnce().StartInstance([]string{"i-009cc2e0f3098a3da"})
+}
+
+func TestRebootInstanceEC2(t *testing.T) {
+	currentRegion = aws_mg_common.AWSRegion_US_West_2_Oregon
+	SetupAWSManager("test_ak", "test_ak/", func(err error) {
+		if err != nil {
+			gtbox_log.LogErrorf("%s", err)
+		}
+	})
+	instanceOnce().RebootInstance([]string{"i-009cc2e0f3098a3da"})
+}
+
+func TestDeleteInstanceEC2(t *testing.T) {
+	currentRegion = aws_mg_common.AWSRegion_US_West_2_Oregon
+	SetupAWSManager("test_ak", "test_ak/", func(err error) {
+		if err != nil {
+			gtbox_log.LogErrorf("%s", err)
+		}
+	})
+	instanceOnce().DeleteInstance([]string{"i-009cc2e0f3098a3da"})
+}
