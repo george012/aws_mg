@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/george012/aws_mg/aws_mg_common"
@@ -187,6 +188,45 @@ func StartInstance(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_c
 	_, err := ec2_client.StartInstances(context.TODO(), &ec2.StartInstancesInput{InstanceIds: instanceIds})
 	if err != nil {
 		gtbox_log.LogErrorf("启动失败")
+		return err
+	}
+	return nil
+}
+
+func ImportCertificate(region aws_mg_common.AWSRegion, aws_config *aws.Config, acm_client *acm.Client, certificate aws_mg_model.Certificate) error {
+	acm_client = acm.NewFromConfig(*aws_config)
+
+	// 创建上传请求
+	input := &acm.ImportCertificateInput{
+		//证书
+		Certificate: []byte(certificate.Certificate),
+		//私钥
+		PrivateKey: []byte(certificate.PrivateKey),
+		//证书链
+		CertificateChain: []byte(certificate.CertificateChain),
+	}
+
+	_, err := acm_client.ImportCertificate(context.TODO(), input)
+
+	if err != nil {
+		gtbox_log.LogErrorf("上传证书失败")
+		return err
+	}
+	return nil
+}
+
+func DeleteCertificate(region aws_mg_common.AWSRegion, aws_config *aws.Config, acm_client *acm.Client, certificateArn string) error {
+	acm_client = acm.NewFromConfig(*aws_config)
+
+	// 创建上传请求
+	input := &acm.DeleteCertificateInput{
+		CertificateArn: &certificateArn,
+	}
+
+	_, err := acm_client.DeleteCertificate(context.TODO(), input)
+
+	if err != nil {
+		gtbox_log.LogErrorf("删除证书失败")
 		return err
 	}
 	return nil

@@ -38,7 +38,7 @@ func TestStopInstanceEC2(t *testing.T) {
 		gtbox_log.LogErrorf("%s", err)
 	}
 
-	a_mg.StopInstance([]string{"i-009cc2e0f3098a3da"})
+	a_mg.StopInstance([]string{""})
 }
 
 func TestStartInstanceEC2(t *testing.T) {
@@ -47,7 +47,7 @@ func TestStartInstanceEC2(t *testing.T) {
 		gtbox_log.LogErrorf("%s", err)
 	}
 
-	a_mg.StartInstance([]string{"i-009cc2e0f3098a3da"})
+	a_mg.StartInstance([]string{""})
 }
 
 func TestRebootInstanceEC2(t *testing.T) {
@@ -56,7 +56,7 @@ func TestRebootInstanceEC2(t *testing.T) {
 		gtbox_log.LogErrorf("%s", err)
 	}
 
-	a_mg.RebootInstance([]string{"i-009cc2e0f3098a3da"})
+	a_mg.RebootInstance([]string{""})
 }
 
 func TestDeleteInstanceEC2(t *testing.T) {
@@ -65,5 +65,23 @@ func TestDeleteInstanceEC2(t *testing.T) {
 		gtbox_log.LogErrorf("%s", err)
 	}
 
-	a_mg.DeleteInstance([]string{"i-009cc2e0f3098a3da"})
+	a_mg.DeleteInstance([]string{""})
+}
+
+func TestImportCertificate(t *testing.T) {
+	a_mg, err := aws_mg.NewAWSManager("test_ak", "test_sk", aws_mg_common.AWSRegion_US_West_2_Oregon)
+	if err != nil {
+		gtbox_log.LogErrorf("%s", err)
+	}
+
+	a_mg.ImportCertificate(aws_mg_model.Certificate{Certificate: "", PrivateKey: "", CertificateChain: ""})
+}
+
+func TestDeleteCertificate(t *testing.T) {
+	a_mg, err := aws_mg.NewAWSManager("test_ak", "test_sk", aws_mg_common.AWSRegion_US_West_2_Oregon)
+	if err != nil {
+		gtbox_log.LogErrorf("%s", err)
+	}
+
+	a_mg.DeleteCertificate("certificateArn")
 }
