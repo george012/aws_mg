@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/george012/aws_mg/aws_mg_common"
 	"github.com/george012/aws_mg/aws_mg_ec2"
 	"github.com/george012/aws_mg/aws_mg_model"
@@ -36,8 +37,8 @@ func instanceOnce() *AWSManager {
 	return currentManager
 }
 
-func (aws_mg *AWSManager) ListInstance() {
-	aws_mg_ec2.ListInstanceFromAWSManager(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client)
+func (aws_mg *AWSManager) ListInstance() map[string]*types.Instance {
+	return aws_mg_ec2.ListInstanceFromAWSManager(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client)
 }
 
 func (aws_mg *AWSManager) DeleteInstance(instanceIds []string) {
