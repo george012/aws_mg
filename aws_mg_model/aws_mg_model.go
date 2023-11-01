@@ -35,3 +35,9 @@ func NewAWSInstancePreConfig(region aws_mg_common.AWSRegion, ami_id string, volu
 	}
 	return instancePreConfig
 }
+
+type Certificate struct {
+	Certificate      string //证书
+	PrivateKey       string //私钥
+	CertificateChain string //证书链
+}
