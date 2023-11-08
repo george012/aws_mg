@@ -85,3 +85,21 @@ func TestDeleteCertificate(t *testing.T) {
 
 	a_mg.DeleteCertificate("certificateArn")
 }
+
+func TestGetIpList(t *testing.T) {
+	a_mg, err := aws_mg.NewAWSManager("test_ak", "test_sk/", aws_mg_common.AWSRegion_US_West_2_Oregon)
+	if err != nil {
+		gtbox_log.LogErrorf("%s", err)
+	}
+	var s []string
+	s = append(s, "")
+	a_mg.GetIpList(s)
+}
+
+func TestDeleteIp(t *testing.T) {
+	a_mg, err := aws_mg.NewAWSManager("test_ak", "test_sk/", aws_mg_common.AWSRegion_US_West_2_Oregon)
+	if err != nil {
+		gtbox_log.LogErrorf("%s", err)
+	}
+	a_mg.DeleteIp("")
+}

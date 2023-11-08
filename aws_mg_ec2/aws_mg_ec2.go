@@ -11,6 +11,7 @@ import (
 	"github.com/george012/aws_mg/aws_mg_common"
 	"github.com/george012/aws_mg/aws_mg_model"
 	"github.com/george012/gtbox/gtbox_log"
+	"log"
 	"time"
 )
 
@@ -230,4 +231,34 @@ func DeleteCertificate(region aws_mg_common.AWSRegion, aws_config *aws.Config, a
 		return err
 	}
 	return nil
+}
+
+func GetIpList(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, prefixListIDs []string) []types.ManagedPrefixList {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	// 查询 AWS 全球 IP 地址范围
+	input := &ec2.DescribeManagedPrefixListsInput{
+		PrefixListIds: prefixListIDs,
+	}
+
+	result, err := ec2_client.DescribeManagedPrefixLists(context.TODO(), input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result.PrefixLists
+}
+
+func DeleteIp(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, prefixListID string) {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	// 准备删除 IP 地址列表的输入参数
+	input := &ec2.DeleteManagedPrefixListInput{
+		PrefixListId: aws.String(prefixListID),
+	}
+
+	// 删除 IP 地址列表
+	_, err := ec2_client.DeleteManagedPrefixList(context.TODO(), input)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

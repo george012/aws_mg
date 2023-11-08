@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/acm"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 	"github.com/george012/aws_mg/aws_mg_common"
 	"github.com/george012/aws_mg/aws_mg_ec2"
 	"github.com/george012/aws_mg/aws_mg_model"
@@ -64,6 +65,12 @@ func (aws_mg *AWSManager) ImportCertificate(certificate aws_mg_model.Certificate
 
 func (aws_mg *AWSManager) DeleteCertificate(certificateArn string) {
 	aws_mg_ec2.DeleteCertificate(aws_mg.region, aws_mg.aWSConfig, aws_mg.acmClient, certificateArn)
+}
+func (aws_mg *AWSManager) GetIpList(prefixListIDs []string) []types.ManagedPrefixList {
+	return aws_mg_ec2.GetIpList(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, prefixListIDs)
+}
+func (aws_mg *AWSManager) DeleteIp(prefixListID string) {
+	aws_mg_ec2.DeleteIp(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, prefixListID)
 }
 
 func (aws_mg *AWSManager) CreateEC2Instance(instance_pre_config *aws_mg_model.AWSInstancePreConfig, end_func func(result_info interface{}, err error)) {
