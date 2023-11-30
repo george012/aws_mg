@@ -39,8 +39,8 @@ func instanceOnce() *AWSManager {
 	return currentManager
 }
 
-func (aws_mg *AWSManager) ListInstance() {
-	aws_mg_ec2.ListInstanceFromAWSManager(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client)
+func (aws_mg *AWSManager) ListInstance() map[string]*types.Instance {
+	return aws_mg_ec2.ListInstanceFromAWSManager(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client)
 }
 
 func (aws_mg *AWSManager) DeleteInstance(instanceIds []string) {
