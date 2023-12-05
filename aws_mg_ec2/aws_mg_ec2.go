@@ -11,6 +11,7 @@ import (
 	"github.com/george012/aws_mg/aws_mg_common"
 	"github.com/george012/aws_mg/aws_mg_model"
 	"github.com/george012/gtbox/gtbox_log"
+	"log"
 	"time"
 )
 
@@ -74,6 +75,13 @@ func CreateInstanceFromAWSManager(instance_pre_config *aws_mg_model.AWSInstanceP
 						Value: aws.String(instance_pre_config.NameTag),
 					},
 				},
+			},
+		},
+		NetworkInterfaces: []types.InstanceNetworkInterfaceSpecification{
+			{
+				DeviceIndex:              aws.Int32(0), // 主网络接口的索引
+				NetworkInterfaceId:       aws.String(instance_pre_config.NetworkInterfaceId),
+				AssociatePublicIpAddress: aws.Bool(instance_pre_config.IsAssociatePublicIpAddress), // 是否禁用自动分配公有 IP
 			},
 		},
 	}
@@ -230,4 +238,109 @@ func DeleteCertificate(region aws_mg_common.AWSRegion, aws_config *aws.Config, a
 		return err
 	}
 	return nil
+}
+
+func GetIpList(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, prefixListIDs []string) []types.ManagedPrefixList {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	// 查询 AWS 全球 IP 地址范围
+	input := &ec2.DescribeManagedPrefixListsInput{
+		PrefixListIds: prefixListIDs,
+	}
+
+	result, err := ec2_client.DescribeManagedPrefixLists(context.TODO(), input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result.PrefixLists
+}
+
+func DeleteIp(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, prefixListID string) {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	// 准备删除 IP 地址列表的输入参数
+	input := &ec2.DeleteManagedPrefixListInput{
+		PrefixListId: aws.String(prefixListID),
+	}
+
+	// 删除 IP 地址列表
+	_, err := ec2_client.DeleteManagedPrefixList(context.TODO(), input)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// AllocateEIP 分配EIP
+func AllocateEIP(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client) *ec2.AllocateAddressOutput {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	input := &ec2.AllocateAddressInput{Domain: types.DomainTypeVpc}
+
+	result, err := ec2_client.AllocateAddress(context.TODO(), input)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result
+}
+
+// CreateNetworkInterface 创建网络接口
+func CreateNetworkInterface(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, subnetID string) *ec2.CreateNetworkInterfaceOutput {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	createParams := &ec2.CreateNetworkInterfaceInput{
+		// 指定子网 ID 和其他必要参数
+		SubnetId: aws.String(subnetID),
+	}
+
+	result, err := ec2_client.CreateNetworkInterface(context.TODO(), createParams)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result
+}
+
+// DeleteNetworkInterface 删除网络接口
+func DeleteNetworkInterface(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, networkInterfaceId string) {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	createParams := &ec2.DeleteNetworkInterfaceInput{
+		// 指定子网 ID 和其他必要参数
+		NetworkInterfaceId: aws.String(networkInterfaceId),
+	}
+
+	_, err := ec2_client.DeleteNetworkInterface(context.TODO(), createParams)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// AssociateEIP 将弹性Ip绑定到网络接口
+func AssociateEIP(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, allocationId, networkInterfaceId string) *ec2.AssociateAddressOutput {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	associateParams := &ec2.AssociateAddressInput{
+		AllocationId:       aws.String(allocationId),
+		NetworkInterfaceId: aws.String(networkInterfaceId),
+	}
+
+	result, err := ec2_client.AssociateAddress(context.TODO(), associateParams)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result
+}
+
+// DisassociateAddress 将弹性IP和网络接口解绑
+func DisassociateAddress(region aws_mg_common.AWSRegion, aws_config *aws.Config, ec2_client *ec2.Client, associationId string) {
+	ec2_client = ec2.NewFromConfig(*aws_config)
+
+	disassociateAddressInput := &ec2.DisassociateAddressInput{AssociationId: aws.String(associationId)}
+
+	_, err := ec2_client.DisassociateAddress(context.TODO(), disassociateAddressInput)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

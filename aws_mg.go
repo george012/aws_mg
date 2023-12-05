@@ -66,6 +66,32 @@ func (aws_mg *AWSManager) ImportCertificate(certificate aws_mg_model.Certificate
 func (aws_mg *AWSManager) DeleteCertificate(certificateArn string) {
 	aws_mg_ec2.DeleteCertificate(aws_mg.region, aws_mg.aWSConfig, aws_mg.acmClient, certificateArn)
 }
+func (aws_mg *AWSManager) GetIpList(prefixListIDs []string) []types.ManagedPrefixList {
+	return aws_mg_ec2.GetIpList(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, prefixListIDs)
+}
+func (aws_mg *AWSManager) DeleteIp(prefixListID string) {
+	aws_mg_ec2.DeleteIp(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, prefixListID)
+}
+
+func (aws_mg *AWSManager) AllocateEIP() *ec2.AllocateAddressOutput {
+	return aws_mg_ec2.AllocateEIP(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client)
+}
+
+func (aws_mg *AWSManager) CreateNetworkInterface(subnetID string) *ec2.CreateNetworkInterfaceOutput {
+	return aws_mg_ec2.CreateNetworkInterface(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, subnetID)
+}
+
+func (aws_mg *AWSManager) DeleteNetworkInterface(networkInterfaceId string) {
+	aws_mg_ec2.DeleteNetworkInterface(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, networkInterfaceId)
+}
+
+func (aws_mg *AWSManager) AssociateEIP(allocationId, networkInterfaceId string) *ec2.AssociateAddressOutput {
+	return aws_mg_ec2.AssociateEIP(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, allocationId, networkInterfaceId)
+}
+
+func (aws_mg *AWSManager) DisassociateAddress(associationId string) {
+	aws_mg_ec2.DisassociateAddress(aws_mg.region, aws_mg.aWSConfig, aws_mg.ec2Client, associationId)
+}
 
 func (aws_mg *AWSManager) CreateEC2Instance(instance_pre_config *aws_mg_model.AWSInstancePreConfig, end_func func(result_info interface{}, err error)) {
 	aws_mg_ec2.CreateInstanceFromAWSManager(instance_pre_config, aws_mg.aWSConfig, aws_mg.ec2Client, end_func)
